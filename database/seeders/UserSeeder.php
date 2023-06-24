@@ -19,6 +19,7 @@ class UserSeeder extends Seeder
         if (User::count() == 0){
             User::create([
                 'name' => 'test_tale',
+                'image' => 'avatar.jpg',
                 'email' => 'test@tale.by',
                 'password' => Hash::make('test'),
                 'isActive' => 1
