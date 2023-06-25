@@ -18,6 +18,7 @@
             </tr>
             </thead>
             <tbody>
+            @if (isset($result['invoices']))
             @foreach($result['invoices'] as $invoice)
                 <tr>
                     <td>{{$invoice['project']}}</td>
@@ -33,6 +34,7 @@
                     <td>{{$invoice['profit']}}</td>
                 </tr>
             @endforeach
+            @endif
             </tbody>
         </table>
     </div>
