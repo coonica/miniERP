@@ -207,12 +207,12 @@ class ConnectTrello extends Command
                     }
                 }
             }
-            $users = User::all();
-            foreach ($users as $user) {
-                if ($user->isAdmin()) {
-                    Mail::to($user->email)->send(new SynchTrelloMessage($message));
-                }
-            }
+            // $users = User::all();
+            // foreach ($users as $user) {
+            //     if ($user->isAdmin()) {
+            //         Mail::to($user->email)->send(new SynchTrelloMessage($message));
+            //     }
+            // }
         }
         return Command::SUCCESS;
     }

@@ -12,6 +12,9 @@ class SummaryTable
         $projects = Project::all();
         foreach ($projects as $project) {
             $invoices = $project->invoices;
+            if ($invoices->count() === 0){
+                $result['invoices'] = [];
+            }else{
             foreach ($invoices as $invoice) {
                 $budget = 0;
                 $resultMembers = [];
@@ -51,6 +54,7 @@ class SummaryTable
                     'expenses' => $expenses,
                     'profit' => $budget - $expenses
                 ];
+            }
             }
         }
         return $result;
