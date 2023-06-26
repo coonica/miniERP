@@ -15,7 +15,6 @@ class SummaryController extends Controller
         $summaryTable = new SummaryTable();
         $result = $summaryTable->getInvoices();
         $result['member_count'] = Member::count();
-        $result['invoices'] = Invoice::all();
         return view('result', ['result' => $result]);
     }
 }

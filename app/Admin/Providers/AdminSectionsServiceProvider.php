@@ -2,9 +2,6 @@
 
 namespace App\Admin\Providers;
 
-use App\Models\Category;
-use App\Models\Post;
-use App\Models\Product;
 use Illuminate\Routing\Router;
 use SleepingOwl\Admin\Contracts\Navigation\NavigationInterface;
 use SleepingOwl\Admin\Contracts\Template\MetaInterface;
@@ -28,6 +25,7 @@ class AdminSectionsServiceProvider extends ServiceProvider
         // alphabet order
         //priority by use
         //\App\User::class => 'App\Http\Sections\Users',
+        \App\Models\Invoice::class => 'App\Admin\Http\Sections\Invoices'
     ];
 
     /**

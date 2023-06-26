@@ -1,36 +1,36 @@
 @extends('main')
 @section('result')
     <div class="container mt-2">
-        <table class="table border border-collapse border-slate-100">
+        <table class="table border border-collapse border-gray-300">
             <thead>
             <tr>
-                <th>Клиент</th>
-                <th>Счет</th>
-                <th>Статус</th>
-                <th>Бюджет</th>
+                <th class="border">Клиент</th>
+                <th class="border">Счет</th>
+                <th class="border">Статус</th>
+                <th class="border">Бюджет</th>
                 @for($i = 1; $i <= $result['member_count']; $i++)
-                    <th>Mem{{$i}}, est</th>
-                    <th>Mem{{$i}}, часы</th>
-                    <th>Mem{{$i}}, итого$</th>
+                    <th class="border">Mem{{$i}}, est</th>
+                    <th class="border">Mem{{$i}}, часы</th>
+                    <th class="border">Mem{{$i}}, итого$</th>
                 @endfor
-                <th>Итого затраты</th>
-                <th>Валовая прибыль</th>
+                <th class="border">Итого затраты</th>
+                <th class="border">Валовая прибыль</th>
             </tr>
             </thead>
             <tbody>
             @foreach($result['invoices'] as $invoice)
                 <tr>
-                    <td>{{$invoice['project']}}</td>
-                    <td>{{$invoice['invoice']}}</td>
-                    <td>{{$invoice['status']}}</td>
-                    <td>{{$invoice['budget']}}</td>
+                    <td class="border">{{$invoice['project']}}</td>
+                    <td class="border">{{$invoice['invoice']}}</td>
+                    <td class="border">{{$invoice['status']}}</td>
+                    <td class="border">{{$invoice['budget']}}</td>
                     @foreach($invoice['members'] as $member)
-                        <td>{{$member['est']}}</td>
-                        <td>{{$member['spent']}}</td>
-                        <td>{{$member['total']}}</td>
+                        <td class="border">{{$member['est']}}</td>
+                        <td class="border">{{$member['spent']}}</td>
+                        <td class="border">{{$member['total']}}</td>
                     @endforeach
-                    <td>{{$invoice['expenses']}}</td>
-                    <td>{{$invoice['profit']}}</td>
+                    <td class="border">{{$invoice['expenses']}}</td>
+                    <td class="border">{{$invoice['profit']}}</td>
                 </tr>
             @endforeach
             </tbody>

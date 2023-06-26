@@ -47,6 +47,7 @@ class ConnectTrello extends Command
         // going through boards of existing bookers
         $bookers = Booker::all();
         $missedInfo = [];
+        $message = 'При синхронизации с Trello были выделены карточки с несколькими тегами: ';
         foreach ($bookers as $booker) {
             $api = new TrelloApi($booker->trello_token);
             $boards = $api->getBoardsByMember($booker->user->name);
@@ -207,12 +208,12 @@ class ConnectTrello extends Command
                     }
                 }
             }
-            $users = User::all();
-            foreach ($users as $user) {
-                if ($user->isAdmin()) {
-                    Mail::to($user->email)->send(new SynchTrelloMessage($message));
-                }
-            }
+//            $users = User::all();
+//            foreach ($users as $user) {
+//                if ($user->isAdmin()) {
+//                    Mail::to($user->email)->send(new SynchTrelloMessage($message));
+//                }
+//            }
         }
         return Command::SUCCESS;
     }

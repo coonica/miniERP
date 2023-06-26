@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceTaskController;
 use App\Http\Controllers\ProfileController;
@@ -23,6 +24,8 @@ Route::get('/', function () {
     return view('main');
 });
 
+Route::get('/clients', [ClientController::class, 'index'])->name('clients');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['admin', 'verified'])->name('dashboard');
@@ -40,6 +43,10 @@ Route::resource('projects', ProjectController::class)
 Route::resource('invoices', InvoiceController::class)
     ->missing(function (Request $request){
         return Redirect::route('invoices.index');
+    });
+Route::resource('clients', ClientController::class)
+    ->missing(function (Request $request){
+        return Redirect::route('clients.index');
     });
 Route::resource('invoice_tasks', InvoiceTaskController::class)
     ->missing(function (Request $request){
