@@ -28,11 +28,11 @@ return [
         'url'   => route('admin.dashboard'),
     ],
 
-    [
-        'title' => 'Information',
-        'icon'  => 'fas fa-info-circle',
-        'url'   => route('admin.information'),
-    ],
+    // [
+    //     'title' => 'Information',
+    //     'icon'  => 'fas fa-info-circle',
+    //     'url'   => route('admin.information'),
+    // ],
 
     // Examples
     // [
