@@ -19,7 +19,7 @@ class InvoiceTaskSeeder extends Seeder
         if(InvoiceTask::count() == 0) {
             InvoiceTask::create([
                 'invoice_id' => 1,
-                'desc' => 'Test InvoiceTask',
+                'note' => 'Test InvoiceTask',
                 'tag' => '#tag'
             ]);
         }
