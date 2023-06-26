@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invoice;
 use App\Models\Member;
 use App\Services\SummaryTable;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ class SummaryController extends Controller
         $summaryTable = new SummaryTable();
         $result = $summaryTable->getInvoices();
         $result['member_count'] = Member::count();
+        $result['invoices'] = Invoice::all();
         return view('result', ['result' => $result]);
     }
 }
