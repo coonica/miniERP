@@ -17,13 +17,9 @@ class ProjectFactory extends Factory
      */
     public function definition()
     {
-        if (Project::count() == 0) {
-            return [
-                'name' => fake()->company(),
-                'client_id' => rand(1, 5),
-            ];
-        }
-
-        return [];
+        return [
+            'name' => fake()->company(),
+            'client_id' => rand(1, 5),
+        ];
     }
 }
