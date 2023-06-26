@@ -10,6 +10,7 @@ use AdminFormElement;
 use App\Models\ListCard;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use phpseclib3\Crypt\Hash;
 use SleepingOwl\Admin\Contracts\Display\DisplayInterface;
 use SleepingOwl\Admin\Contracts\Form\FormInterface;
 use SleepingOwl\Admin\Contracts\Initializable;
@@ -61,11 +62,11 @@ class Members extends Section implements Initializable
         $columns = [
             AdminColumn::text('id', '#')->setWidth('300px')->setHtmlAttribute('class', 'text-center'),
             AdminColumn::link('user.name', 'User')->setWidth('200px')->setHtmlAttribute('class', 'text-center') //can change to related link in future
-                ->setSearchCallback(function ($column, $query, $search) {
-                    return $query
-                        ->orWhere('user_name', 'like', '%' . $search . '%')
-                        ->orWhere('created_at', 'like', '%' . $search . '%');
-                })
+            ->setSearchCallback(function ($column, $query, $search) {
+                return $query
+                    ->orWhere('user_name', 'like', '%' . $search . '%')
+                    ->orWhere('created_at', 'like', '%' . $search . '%');
+            })
                 ->setOrderable(function ($query, $direction) {
                     $query->orderBy('user_name', $direction);
                 })
@@ -108,12 +109,41 @@ class Members extends Section implements Initializable
      */
     public function onEdit($id = null, $payload = [])
     {
+        $columnWithId = [
+            AdminFormElement::text('id', 'ID')->setReadonly(true),
+            AdminFormElement::html('(Can\'t change)'),
+            AdminFormElement::html('<hr>'),
+            AdminFormElement::text('rate', 'Rate'),
+            AdminFormElement::html('Type number in decimal format'),
+            AdminFormElement::html('<hr>'),
+            AdminFormElement::multiselect('listCards', 'Cards', ListCard::class)->setDisplay('name'),
+        ];
+
+        if (is_null($id)) {
+            $columnWithId = [
+                AdminFormElement::hidden('id')->setDefaultValue(md5(time())), //без понятия по какому алгоритму выбираются id у вас =)
+                AdminFormElement::text('rate', 'Rate'),
+                AdminFormElement::html('Type number in decimal format'),
+                AdminFormElement::html('<hr>'),
+                AdminFormElement::multiselect('listCards', 'Cards', ListCard::class)->setDisplay('name'),
+            ];
+        }
         $form = AdminForm::card()->addBody([
             AdminFormElement::columns()
                 ->addColumn([
+                    //AdminFormElement::text('user_name', 'User Name')->required(),
                     AdminFormElement::select('user_id', 'User', User::class)->setDisplay('name')
                         ->required()
                     ,
+                    AdminFormElement::html('<hr>'),
+                    AdminFormElement::dependentselect('user_name', 'User name')
+                        ->setModelForOptions(User::class, 'name')
+                        ->setDataDepends(['user_id'])
+                        ->setLoadOptionsQueryPreparer(function ($item, $query) {
+                            return $query->where('id', $item->getDependValue('user_id'));
+                        })->required()
+                    ,
+                    AdminFormElement::html('Select after choosing User'),
                     AdminFormElement::html('<hr>'),
                     AdminFormElement::datetime('created_at')
                         ->setVisible(true)
@@ -121,17 +151,7 @@ class Members extends Section implements Initializable
                     ,
                     AdminFormElement::html('Creating date')
                 ], 'col-xs-12 col-sm-6 col-md-4 col-lg-4')
-                ->addColumn([
-                    AdminFormElement::text('id', 'ID')->setReadonly(true),
-                    AdminFormElement::html('(Can\'t change)'),
-                    AdminFormElement::html('<hr>'),
-                    AdminFormElement::text('rate', 'Rate'),
-                    AdminFormElement::html('Type number in decimal format'),
-                    AdminFormElement::html('<hr>'),
-                    AdminFormElement::multiselect('listCards', 'Cards', ListCard::class)->setDisplay('name'),
-
-
-                ], 'col-xs-12 col-sm-6 col-md-8 col-lg-8'),
+                ->addColumn($columnWithId, 'col-xs-12 col-sm-6 col-md-8 col-lg-8'),
         ]);
 
         $form->getButtons()->setButtons([
