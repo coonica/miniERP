@@ -16,9 +16,11 @@ class ClientSeeder extends Seeder
     public function run()
     {
         if (Client::count() == 0) {
-            Client::create([
-                'name' => 'Test client'
-            ]);
+            for ($i = 1; $i <= 5; $i++ ){
+                Client::create([
+                    'name' => 'Client '.$i,
+                ]);
+            }
         }
     }
 }
