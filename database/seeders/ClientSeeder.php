@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Project;
+use App\Models\Client;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class ProjectSeeder extends Seeder
+class ClientSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,10 +15,9 @@ class ProjectSeeder extends Seeder
      */
     public function run()
     {
-        if (Project::count() == 0) {
-            Project::create([
-                'name' => 'Test project',
-                'client_id' => 1,
+        if (Client::count() == 0) {
+            Client::create([
+                'name' => 'Test client'
             ]);
         }
     }
