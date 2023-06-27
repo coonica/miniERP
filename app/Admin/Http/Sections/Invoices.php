@@ -144,25 +144,31 @@ class Invoices extends Section implements Initializable
         );
 
         $formInvoiceTask = AdminForm::form()->addElement(
-            AdminFormElement::columns()
-                ->addColumn([
-                        AdminFormElement::select('invoice_id', 'Счёт', Invoice::class)->setDisplay('name')
-                            ->required()
-                        ,
-                        AdminFormElement::textarea('note', 'Описание')
-                        ,
-                        AdminFormElement::text('fix_price', 'Бюджет', InvoiceTask::class)
-                            ->required()
-                        ,
-                    ]
-                    , 'col-xs-12 col-sm-6 col-md-4 col-lg-4'),
+            AdminFormElement::hasMany('invoiceTasks', [
+                    AdminFormElement::columns()->addColumn([
+                            AdminFormElement::select('invoice_id', 'Счёт', Invoice::class)->setDisplay('name')
+                                ->required()
+                            ,
+                            AdminFormElement::textarea('note', 'Описание')
+                            ,
+                            AdminFormElement::text('fix_price', 'Бюджет', InvoiceTask::class)
+                                ->required()
+                            ,
+                        ]
+                        , 'col-xs-12 col-sm-6 col-md-4 col-lg-4'
+                    )
+                    ,
+                ]
+                ,
+            )
         );
+
 
         $tabs = AdminDisplay::tabbed();
 
         $tabs->appendTab($formInvoice, 'Invoice');
         $tabs->appendTab($formInvoiceTask, 'Invoice Task');
-
+//        dd($formInvoiceTask->getButtons());
 
         return $tabs;
     }
