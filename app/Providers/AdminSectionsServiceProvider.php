@@ -11,7 +11,7 @@ class AdminSectionsServiceProvider extends ServiceProvider
      * @var array
      */
     protected $sections = [
-        //\App\User::class => 'App\Http\Sections\Users',
+        \App\Models\Invoice::class => 'App\Http\Sections\Invoices',
     ];
 
     /**
