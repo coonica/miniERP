@@ -26,17 +26,14 @@ class InvoiceFactory extends Factory
             'Обработка кожи салона',
         ];
 
-        if (Invoice::all()->count() == 0) {
-            $board = Board::all()->first();
-            return [
-                'project_id' => rand(1, 20),
-                'date' => now(),
-                'name' => $invoiceNames[mt_rand(0, count($invoiceNames) - 1)],
-                'idBoard' => $board->idBoard,
-                'status_id' => mt_rand(1, 3)
-            ];
-        }
+        $board = Board::all()->first();
 
-        return [];
+        return [
+            'project_id' => rand(1, 20),
+            'date' => now(),
+            'name' => $invoiceNames[mt_rand(0, count($invoiceNames) - 1)],
+            'idBoard' => $board->idBoard,
+            'status_id' => mt_rand(1, 3)
+        ];
     }
 }

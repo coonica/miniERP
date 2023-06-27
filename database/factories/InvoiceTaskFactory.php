@@ -25,15 +25,10 @@ class InvoiceTaskFactory extends Factory
             'химчистка',
         ];
 
-        if (InvoiceTask::count() == 0) {
-            return [
-                'invoice_id' => mt_rand(1, 5),
-                'note' => fake()->sentence(),
-//                'tag' => '#' . fake()->unique()->$invoiceTaskNames[mt_rand(0, count($invoiceTaskNames) - 1)],
-                'tag' => '#' . $invoiceTaskNames[fake()->unique()->numberBetween(0, count($invoiceTaskNames) - 1)],
-            ];
-        }
-
-        return [];
+        return [
+            'invoice_id' => mt_rand(1, 5),
+            'note' => fake()->sentence(),
+            'tag' => '#' . $invoiceTaskNames[fake()->unique()->numberBetween(0, count($invoiceTaskNames) - 1)],
+        ];
     }
 }
