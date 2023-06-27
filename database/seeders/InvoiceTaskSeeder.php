@@ -16,6 +16,8 @@ class InvoiceTaskSeeder extends Seeder
      */
     public function run()
     {
-        InvoiceTask::factory(5)->create();
+        if (InvoiceTask::count() == 0) {
+            InvoiceTask::factory(5)->create();
+        }
     }
 }
