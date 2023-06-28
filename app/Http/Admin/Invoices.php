@@ -7,6 +7,9 @@ use AdminColumn;
 use AdminForm;
 use AdminFormElement;
 use AdminColumnFilter;
+use App\Models\Board;
+use App\Models\Project;
+use App\Models\Status;
 use SleepingOwl\Admin\Contracts\Display\DisplayInterface;
 use SleepingOwl\Admin\Contracts\Form\FormInterface;
 use SleepingOwl\Admin\Section;
@@ -58,21 +61,25 @@ class Invoices extends Section implements Initializable
     {
         $columns = [
             AdminColumn::text('id', '#')->setWidth('50px')->setHtmlAttribute('class', 'text-center'),
-            AdminColumn::text('project.name', 'Проект'),
-            AdminColumn::text('date', 'Дата')
-            ->setWidth('160px')
+            AdminColumn::link('name', 'Название')
+            ->setWidth('130px')
+            ->setSearchCallback(function($column, $query, $search){
+                return $query
+                    ->orWhere('name', 'like', '%'.$search.'%')
+                ;
+            }),
+            AdminColumn::text('project.name', 'Проект')->setWidth('130px'),
+            AdminColumn::text('board.name', 'Доска')->setWidth('130px'),
+            AdminColumn::datetime('date', 'Дата')
+            ->setFormat('d.m.Y')
+            ->setWidth('100px')
             ->setOrderable(function($query, $direction) {
                 $query->orderBy('updated_at', $direction);
             })
             ->setSearchable(false)
         ,
-            AdminColumn::link('name', 'Название')
-                ->setSearchCallback(function($column, $query, $search){
-                    return $query
-                        ->orWhere('name', 'like', '%'.$search.'%')
-                    ;
-                }),
             AdminColumn::lists('invoiceTasks.note', 'Задачи'),
+            AdminColumn::text('status.name', 'Статус')->setWidth('130px'),
         ];
 
         $display = AdminDisplay::datatables()
@@ -84,18 +91,18 @@ class Invoices extends Section implements Initializable
             ->setHtmlAttribute('class', 'table-primary table-hover th-center')
         ;
 
-        // $display->setColumnFilters([
-        //     AdminColumnFilter::select()
-        //         ->setModelForOptions(\App\Models\Invoice::class, 'name')
-        //         ->setLoadOptionsQueryPreparer(function($element, $query) {
-        //             return $query;
-        //         })
-        //         ->setDisplay('name')
-        //         ->setColumnName('name')
-        //         ->setPlaceholder('All names')
-        //     ,
-        // ]);
-        // $display->getColumnFilters()->setPlacement('card.heading');
+        $display->setColumnFilters([
+            AdminColumnFilter::select()
+                ->setModelForOptions(\App\Models\Status::class, 'id')
+                ->setLoadOptionsQueryPreparer(function($element, $query) {
+                    return $query;
+                })
+                ->setDisplay('name')
+                ->setColumnName('status.id')
+                ->setPlaceholder('Все статусы')
+            ,
+        ]);
+        $display->getColumnFilters()->setPlacement('card.heading');
 
         return $display;
     }
@@ -108,21 +115,32 @@ class Invoices extends Section implements Initializable
      */
     public function onEdit($id = null, $payload = [])
     {
-        $form = AdminForm::card()->addBody([
-            AdminFormElement::columns()->addColumn([
-                AdminFormElement::text('name', 'Name')
-                    ->required()
-                ,
-                AdminFormElement::html('<hr>'),
-                AdminFormElement::datetime('created_at')
-                    ->setVisible(true)
-                    ->setReadonly(false)
-                ,
-                AdminFormElement::html('last AdminFormElement without comma')
-            ], 'col-xs-12 col-sm-6 col-md-4 col-lg-4')->addColumn([
+        $tabs = AdminDisplay::tabbed();
+        $tabs->setTabs(function ($id) {
+            $tabs = [];
+
+            $tabs[] = AdminDisplay::tab(AdminForm::elements([
                 AdminFormElement::text('id', 'ID')->setReadonly(true),
-                AdminFormElement::html('last AdminFormElement without comma')
-            ], 'col-xs-12 col-sm-6 col-md-8 col-lg-8'),
+                AdminFormElement::text('name', 'Счет'),
+                AdminFormElement::select('project_id', 'Проект', Project::class)->setDisplay('name')->required(),
+                AdminFormElement::select('idBoard', 'Доска', Board::class)->setDisplay('name')->required(),
+                AdminFormElement::datetime('date', 'Дата')->required(),
+                AdminFormElement::select('status_id', 'Статус', Status::class)->setDisplay('name')->required(),
+                ]))->setLabel('Счета');
+
+            $tabs[] = AdminDisplay::tab(new \SleepingOwl\Admin\Form\FormElements([
+                AdminFormElement::hasMany('invoiceTasks', [
+                AdminFormElement::textarea('note', 'Описание')->required(),
+                AdminFormElement::text('fix_price', 'Стоимость'),
+                ])
+            ]))->setLabel('Задачи счетов');
+
+            return $tabs;
+        });
+
+        $form = AdminForm::card()
+        ->addHeader([
+            $tabs
         ]);
 
         $form->getButtons()->setButtons([
