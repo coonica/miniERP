@@ -12,7 +12,7 @@ docker-compose up
 и появился в корне файл .env </li>
 <li> Если post-install скрипты не выполнились, то:<ul>
 <li> создать .env файл копией от .env.example </li>
-<li> сгенерировать ключ: <code>php artisan key:generate</code></li>
+<li> сгенерировать ключ: <code>php artisan migrate --seed</code></li>
 </ul></li>
 <li> Указали доступ к базе в файле .env:
 <pre>
