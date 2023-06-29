@@ -16,8 +16,9 @@ class InvoiceSeeder extends Seeder
      */
     public function run()
     {
-        if(Invoice::count() == 0) {
+        if (Invoice::count() == 0 && Board::count() !== 0) {
             $board = Board::all()->first();
+
             Invoice::create([
                 'project_id' => 1,
                 'date' => now(),
