@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\MemberCard;
+use App\Models\CardMember;
 use App\Models\Project;
 
 class SummaryTable
@@ -28,7 +28,7 @@ class SummaryTable
                                 'spent' => 0
                             ];
                             $spentTimeForCard = 0;
-                            $memberCardTimes = MemberCard::where(['list_card_idCard' => $card->idCard, 'member_id' => $member->id])->first()->memberCardTime;
+                            $memberCardTimes = CardMember::where(['list_card_idCard' => $card->idCard, 'member_id' => $member->id])->first()->memberCardTime;
                             foreach ($memberCardTimes as $time) {
                                 $spentTimeForCard += $time->spent_time;
                             }

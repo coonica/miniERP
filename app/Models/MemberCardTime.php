@@ -13,6 +13,6 @@ class MemberCardTime extends Model
     public $timestamps = false;
 
     public function memberCard() {
-        return $this->belongsTo(MemberCard::class);
+        return $this->belongsTo(CardMember::class);
     }
 }

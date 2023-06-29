@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class MemberCard extends Pivot
+class CardMember extends Pivot
 {
-    protected $table = 'members_cards';
+    protected $table = 'card_member';
     public $incrementing = true;
 
     protected $fillable = ['est_hour'];
