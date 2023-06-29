@@ -14,7 +14,7 @@ class Member extends Model
     protected $fillable = ['id', 'user_name', 'user_id', 'rate'];
 
     public function user() {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
     }
 
     public function listCards() {
