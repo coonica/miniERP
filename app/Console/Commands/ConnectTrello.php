@@ -53,11 +53,15 @@ class ConnectTrello extends Command
         $cardsSyncCommands = ['all', 'c', 'bc', 'cm'];
         $boardsSyncCommands = ['all', 'b', 'bc', 'bm'];
         $allPossibleCommands = array_unique(array_merge($membersSyncCommands, $cardsSyncCommands, $boardsSyncCommands));
-
         if (!in_array($target, $allPossibleCommands, false)) {
             $this->error('Unhandled argument');
             return Command::INVALID;
         }
+
+        $this->info("Start sync");
+        $barCount = ($target === 'all') ? 3 : strlen($target);
+        $bar = $this->output->createProgressBar($barCount);
+        $bar->start();
 
         $faker = Container::getInstance()->make(Generator::class);
         // going through boards of existing bookers
@@ -85,9 +89,6 @@ class ConnectTrello extends Command
                     }
                     // sync boards lists
                     $lists = $api->getListsByBoard($board['id']);
-
-                    $bar = $this->output->createProgressBar(count($lists));
-                    $bar->start();
                     foreach ($lists as $list) {
                         $existList = BoardList::find($list['id']);
                         $data = [
@@ -103,23 +104,17 @@ class ConnectTrello extends Command
                             $existList->update($data);
                             $updatedLists++;
                         }
-                        $bar->advance();
                     }
-                    $bar->finish();
-                    $this->newLine();
-                    $this->info('boards lists sync successfully');
+                    $bar->advance();
+                    $this->info(' : boards sync successfully');
                 }
 
-                $this->info('boards sync successfully');
+
                 // sync lists cards
                 if (in_array($target, $cardsSyncCommands, false)) {
                     $cards = $api->getCardsByBoard($board['id']);
-                    $this->info('Sync cards');
-                    $bar = $this->output->createProgressBar(count($cards));
                     foreach ($cards as $card) {
                         //creating or adding card
-                        $this->newLine();
-                        $this->info("Card : {$card['id']}");
                         $existCard = ListCard::find($card['id']);
                         $tag = null;
                         $countTags = Str::substrCount($card['name'], ' #');
@@ -168,9 +163,6 @@ class ConnectTrello extends Command
                         //check members for card
                         if (in_array($target, $membersSyncCommands, false)) {
                             $members = $api->getMembersOfCard($card['id']);
-                            $this->newLine();
-                            $this->info('members sync');
-                            $memberBar = $this->output->createProgressBar(count($members));
                             foreach ($members as $trello_member) {
                                 $member = Member::find($trello_member['id']);
                                 if (!$member) {
@@ -231,25 +223,25 @@ class ConnectTrello extends Command
 
                                 }
                             }
-                            $memberBar->advance();
                         }
-                        $this->newLine();
-                        $this->info('members for card sync successfully');
+                    }
+
+                    if (in_array($target, $membersSyncCommands, false)) {
                         $bar->advance();
+                        $bar->display();
+                        $this->info(" : members for card sync successfully");
 
                     }
 
-                    $this->newLine();
-                    $this->info('cards sync successfully');
+                    $bar->advance();
+                    $bar->display();
+                    $this->info(' : cards sync successfully');
                 }
+
                 if (!in_array($target, $cardsSyncCommands, false) && in_array($target, $membersSyncCommands, false)) {
                     $cards = ListCard::all();
                     foreach ($cards as $card) {
-                        $this->info("Card : {$card['idCard']}");
-                        $this->newLine();
                         $members = $api->getMembersOfCard($card['idCard']);
-                        $this->info('members sync');
-                        $memberBar = $this->output->createProgressBar(count($members));
                         foreach ($members as $trello_member) {
                             $member = Member::find($trello_member['id']);
                             if (!$member) {
@@ -309,18 +301,18 @@ class ConnectTrello extends Command
                                             MemberCardTime::create(array_merge($time_record_data, ['note' => $note ?? null,]));
                                         }
                                     }
-                                }
-                                catch (\Throwable $e) {
+                                } catch (\Throwable $e) {
                                     continue;
                                 }
                             }
 
                         }
-                        $memberBar->advance();
                     }
 
-                    $this->newLine();
-                    $this->info("members for card sync successfully");
+                    $bar->advance();
+                    $bar->display();
+                    $this->info(" : members for card sync successfully");
+
                 }
             }
         }
@@ -344,8 +336,11 @@ class ConnectTrello extends Command
             }
             */
         }
+
         $this->newLine();
         $this->info('finished successfully');
+        $this->newLine();
+
         return Command::SUCCESS;
     }
 
