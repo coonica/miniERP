@@ -27,6 +27,10 @@ class ConnectTrello extends Command
      *
      * @var string
      */
+    /*
+     * php artisan sync:trello boards
+     * php artisan sync:trello lists
+     */
     protected $signature = 'sync:trello {upd?*}';
 
     /**
