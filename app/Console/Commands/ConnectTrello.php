@@ -25,6 +25,10 @@ class ConnectTrello extends Command
 {
     /**
      * The name and signature of the console command.
+     * php artisan sync:trello b -- sync only boards
+     * php artisan sync:trello bc -- sync only boards and cards
+     * php artisan sync:trello all -- sync all
+     *
      *
      * @var string
      */
