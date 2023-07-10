@@ -46,7 +46,7 @@ class ListCard extends Section implements Initializable
      */
     public function initialize()
     {
-        $this->addToNavigation()->setPriority(100)->setIcon('fa fa-lightbulb-o');
+        $this->addToNavigation()->setPriority(200)->setIcon('far fa-id-card');
     }
 
     /**
@@ -57,25 +57,17 @@ class ListCard extends Section implements Initializable
     public function onDisplay($payload = [])
     {
         $columns = [
-            AdminColumn::text('id', '#')->setWidth('50px')->setHtmlAttribute('class', 'text-center'),
-            AdminColumn::link('name', 'Name', 'created_at')
+            AdminColumn::text('idCard', '#')->setWidth('150px')->setHtmlAttribute('class', 'text-center'),
+            AdminColumn::link('name', 'Название', 'updated_at')
                 ->setSearchCallback(function($column, $query, $search){
                     return $query
                         ->orWhere('name', 'like', '%'.$search.'%')
-                        ->orWhere('created_at', 'like', '%'.$search.'%')
+                        ->orWhere('updated_at', 'like', '%'.$search.'%')
                     ;
                 })
                 ->setOrderable(function($query, $direction) {
-                    $query->orderBy('created_at', $direction);
+                    $query->orderBy('name', $direction);
                 })
-            ,
-            AdminColumn::boolean('name', 'On'),
-            AdminColumn::text('created_at', 'Created / updated', 'updated_at')
-                ->setWidth('160px')
-                ->setOrderable(function($query, $direction) {
-                    $query->orderBy('updated_at', $direction);
-                })
-                ->setSearchable(false)
             ,
         ];
 
@@ -114,14 +106,12 @@ class ListCard extends Section implements Initializable
     {
         $form = AdminForm::card()->addBody([
             AdminFormElement::columns()->addColumn([
+                AdminFormElement::select('idList', 'Список', \App\Models\BoardList::class)->setDisplay('name')
+                    ->required(),
                 AdminFormElement::text('name', 'Name')
                     ->required()
                 ,
                 AdminFormElement::html('<hr>'),
-                AdminFormElement::datetime('created_at')
-                    ->setVisible(true)
-                    ->setReadonly(false)
-                ,
                 AdminFormElement::html('last AdminFormElement without comma')
             ], 'col-xs-12 col-sm-6 col-md-4 col-lg-4')->addColumn([
                 AdminFormElement::text('id', 'ID')->setReadonly(true),

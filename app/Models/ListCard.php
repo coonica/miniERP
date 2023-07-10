@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TrelloApi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -24,5 +25,16 @@ class ListCard extends Model
 
     public function invoiceTask() {
         return $this->belongsTo(InvoiceTask::class, 'invoice_task_tag');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($card) {
+            $api = new TrelloApi();
+            $trello_card = $api->addCard($card);
+            $card->idCard = $trello_card['id'];
+            $card->pos = $trello_card['pos'];
+            $card->urlSource = $trello_card['url'];
+        });
     }
 }
