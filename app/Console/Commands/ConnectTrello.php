@@ -27,14 +27,25 @@ class ConnectTrello extends Command
      *
      * @var string
      */
-    protected $signature = 'sync:trello';
+    /*
+     * php artisan sync:trello boards
+     * php artisan sync:trello lists
+     */
+    protected $signature = 'sync:trello {upd?*}';
 
     /**
      * The console command description.
      *
      * @var string
+     *
+     * php artisan sync:trello
+     * php artisan sync:trello boards
+     * php artisan sync:trello lists
+     * php artisan sync:trello cards
+     * php artisan sync:trello members
+     *
      */
-    protected $description = 'Getting data via API Trello and updating model\'s data';
+    protected $description = 'Getting data via API Trello and updating model\'s data. Wright argument boards for synchronization boards, lists - for synchronization lists, cards - for synchronization cards, members - for synchronization cards and members (members cannot be synced without cards) or write command without arguments for sync all elements';
 
     /**
      * Execute the console command.
@@ -47,14 +58,15 @@ class ConnectTrello extends Command
         // going through boards of existing bookers
         $bookers = Booker::all();
         $missedInfo = [];
+        $syncList = $this->argument('upd');
         foreach ($bookers as $booker) {
             $api = new TrelloApi($booker->trello_token);
             $boards = $api->getBoardsByMember($booker->user->name);
             $createdBoards = $updatedBoards = $createdLists = $updatedLists = $createdCards = $updatedCards = $cardsWithMultipleTags = 0;
             $message = 'При синхронизации с Trello были выделены карточки с несколькими тегами: ';
             foreach ($boards as $board) {
-                // sync boards
                 $existBoard = Board::find($board['id']);
+                // sync boards
                 $data = [
                     'idBoard' => $board['id'],
                     'name' => $board['name']
@@ -66,136 +78,151 @@ class ConnectTrello extends Command
                     $existBoard->update($data);
                     $updatedBoards++;
                 }
-                // sync boards lists
-                $lists = $api->getListsByBoard($board['id']);
-                foreach ($lists as $list) {
-                    $existList = BoardList::find($list['id']);
-                    $data = [
-                        'idList' => $list['id'],
-                        'name' => $list['name'],
-                        'pos' => $list['pos'],
-                        'idBoard' => $list['idBoard']
-                    ];
-                    if (!$existList) {
-                        BoardList::create($data);
-                        $createdLists++;
-                    } else {
-                        $existList->update($data);
-                        $updatedLists++;
-                    }
+
+                if (count($syncList) > 0 && !in_array('boards', $syncList)){
+                    $this->error("Boards has been created/updated automatically");
                 }
-                // sync lists cards
-                $cards = $api->getCardsByBoard($board['id']);
-                foreach ($cards as $card) {
-                    //creating or adding card
-                    $existCard = ListCard::find($card['id']);
-                    $tag = null;
-                    $countTags = Str::substrCount($card['name'], ' #');
-                    if ($countTags > 0) {
-                        $tags = Str::substr($card['name'], mb_strpos($card['name'], '#'));
-                        if ($countTags == 1) {
-                            $tag = $tags;
+
+                $this->info("Boards has been created: $createdBoards");
+                $this->info("Boards has been updated: $updatedBoards");
+
+                if (count($syncList) == 0 || in_array('lists', $syncList)){
+                    // sync boards lists
+                    $lists = $api->getListsByBoard($board['id']);
+                    foreach ($lists as $list) {
+                        $existList = BoardList::find($list['id']);
+                        $data = [
+                            'idList' => $list['id'],
+                            'name' => $list['name'],
+                            'pos' => $list['pos'],
+                            'idBoard' => $list['idBoard']
+                        ];
+                        if (!$existList) {
+                            BoardList::create($data);
+                            $createdLists++;
                         } else {
-                            // there is more than 1 hashtag - send warning and sync only first
-                            $tags = explode(' ', $tags);
-                            $tag = $tags[0];
-                            unset($tags[0]);
-                            $missedInfo[] = [
-                                'card' => $card['name'],
-                                'saved_tag' => $tag,
-                                'missed_tags' => $tags
-                            ];
-                            $cardsWithMultipleTags++;
+                            $existList->update($data);
+                            $updatedLists++;
                         }
                     }
-                    $data = [
-                        'idCard' => $card['id'],
-                        'name' => $card['name'],
-                        'pos' => $card['pos'],
-                        'due' => $card['due'],
-                        'idList' => $card['idList'],
-                        'urlSource' => $card['shortUrl'], //or $card['url']
-                    ];
-
-                    if(InvoiceTask::where('tag', $tag)->first()) {
-                        $data['invoice_task_tag'] = $tag;
-                    }
-                    if (!$existCard) {
-                        ListCard::create($data);
-                        $createdCards++;
-                    } else {
-                        $existCard->update($data);
-                        $updatedCards++;
-                    }
-
-                    //check members for card
-                    $members = $api->getMembersOfCard($card['id']);
-                    foreach ($members as $trello_member) {
-                        $member = Member::find($trello_member['id']);
-                        if (!$member) {
-                            //adding user with faker's help
-                            $user = User::create([
-                                'name' => $trello_member['username'],
-                                'email' => $faker->unique()->safeEmail(),
-                                'password' => $faker->password(),
-                                'isActive' => 0
-                            ]);
-                            $member = Member::create([
-                                'id' => $trello_member['id'],
-                                'user_name' => $trello_member['username'],
-                                'user_id' => $user->id
-                            ]);
+                    $this->info("Lists has been created: $createdLists");
+                    $this->info("Lists has been updated: $updatedLists");
+                }
+                if (count($syncList) == 0 || in_array('cards', $syncList) || in_array('members', $syncList)){
+                    // sync lists cards
+                    $cards = $api->getCardsByBoard($board['id']);
+                    foreach ($cards as $card) {
+                        //creating or adding card
+                        $existCard = ListCard::find($card['id']);
+                        $tag = null;
+                        $countTags = Str::substrCount($card['name'], ' #');
+                        if ($countTags > 0) {
+                            $tags = Str::substr($card['name'], mb_strpos($card['name'], '#'));
+                            if ($countTags == 1) {
+                                $tag = $tags;
+                            } else {
+                                // there is more than 1 hashtag - send warning and sync only first
+                                $tags = explode(' ', $tags);
+                                $tag = $tags[0];
+                                unset($tags[0]);
+                                $missedInfo[] = [
+                                    'card' => $card['name'],
+                                    'saved_tag' => $tag,
+                                    'missed_tags' => $tags
+                                ];
+                                $cardsWithMultipleTags++;
+                            }
                         }
-                        // add member to card if needed
-                        if (!$member->listCards->find($card['id'])) {
-                            $member->listCards()->attach($card['id']);
-                            $member = $member->fresh();
+                        $data = [
+                            'idCard' => $card['id'],
+                            'name' => $card['name'],
+                            'pos' => $card['pos'],
+                            'due' => $card['due'],
+                            'idList' => $card['idList'],
+                            'urlSource' => $card['shortUrl'], //or $card['url']
+                        ];
+                        if(InvoiceTask::where('tag', $tag)->first()) {
+                            $data['invoice_task_tag'] = $tag;
                         }
-                    }
-
-                    // sync member first estimate and member spend time records from the card
-                    $comments = $api->getCommentsByCard($card['id']);
-                    foreach ($comments as $comment) {
-                        $text = $comment['data']['text'];
-                        if (Str::startsWith($text, 'plus! ') === false) {
-                            // not comment with time - skip it
-                            continue;
+                        if (!$existCard) {
+                            ListCard::create($data);
+                            $createdCards++;
+                        } else {
+                            $existCard->update($data);
+                            $updatedCards++;
                         }
-                        $member = Member::find($comment['idMemberCreator']);
-                        // if user tracked time to the card but he was not its member - we'll create MemberCard record
-                        $memberCard = MemberCard::firstOrCreate(['list_card_idCard' => $card['id'], 'member_id' => $member->id]);
-                        $memberCardId = $memberCard->id;
-                        //adding estimate hour into pivot table
-                        if (Str::startsWith($text, 'plus! 0/')) {
-                            $time = $this->getTimeFromComment($comment['data']['text']);
-                            $estHour = $time[1];
-                            $member->listCards()->updateExistingPivot($card['id'], ['est_hour' => $estHour]);
-                            continue;
-                        }
-                        // adding new spent time records
-                        if (Str::startsWith($text, 'plus! ')) {
-                            $time = $this->getTimeFromComment($text);
-                            $note = $this->getNoteFromComment($text);
-                            $time_record_data = [
-                                'members_cards_id' => $memberCardId,
-                                'date' => Carbon::parse($comment['date'])->format('Y-m-d H:i:s'),
-                                'spent_time' => (double)$time[0],
-                            ];
-                            $time_record = MemberCardTime::where($time_record_data)->first();
-                            if ($time[0] > 0 && $time_record === null) {
-                                MemberCardTime::create( array_merge($time_record_data, ['note' => $note ?? null,]));
+                        if (count($syncList) == 0 || in_array('members', $syncList)){
+                            //check members for card
+                            $members = $api->getMembersOfCard($card['id']);
+                            foreach ($members as $trello_member) {
+                                $member = Member::find($trello_member['id']);
+                                if (!$member) {
+                                    //adding user with faker's help
+                                    $user = User::create([
+                                        'name' => $trello_member['username'],
+                                        'email' => $faker->unique()->safeEmail(),
+                                        'password' => $faker->password(),
+                                        'isActive' => 0
+                                    ]);
+                                    $member = Member::create([
+                                        'id' => $trello_member['id'],
+                                        'user_name' => $trello_member['username'],
+                                        'user_id' => $user->id
+                                    ]);
+                                }
+                                // add member to card if needed
+                                if (!$member->listCards->find($card['id'])) {
+                                    $member->listCards()->attach($card['id']);
+                                    $member = $member->fresh();
+                                }
+                            }
+                            // sync member first estimate and member spend time records from the card
+                            $comments = $api->getCommentsByCard($card['id']);
+                            foreach ($comments as $comment) {
+                                $text = $comment['data']['text'];
+                                if (Str::startsWith($text, 'plus! ') === false) {
+                                    // not comment with time - skip it
+                                    continue;
+                                }
+                                $member = Member::find($comment['idMemberCreator']);
+                                // if user tracked time to the card but he was not its member - we'll createMemberCard     record
+                                $memberCard = MemberCard::firstOrCreate(['list_card_idCard' => $card['id'],'member_id'     => $member->id]);
+                                $memberCardId = $memberCard->id;
+                                //adding estimate hour into pivot table
+                                if (Str::startsWith($text, 'plus! 0/')) {
+                                    $time = $this->getTimeFromComment($comment['data']['text']);
+                                    $estHour = $time[1];
+                                    $member->listCards()->updateExistingPivot($card['id'], ['est_hour' =>$estHour]);
+                                    continue;
+                                }
+                                // adding new spent time records
+                                if (Str::startsWith($text, 'plus! ')) {
+                                    $time = $this->getTimeFromComment($text);
+                                    $note = $this->getNoteFromComment($text);
+                                    $time_record_data = [
+                                        'members_cards_id' => $memberCardId,
+                                        'date' => Carbon::parse($comment['date'])->format('Y-m-d H:i:s'),
+                                        'spent_time' => (double)$time[0],
+                                    ];
+                                    $time_record = MemberCardTime::where($time_record_data)->first();
+                                    if ($time[0] > 0 && $time_record === null) {
+                                        MemberCardTime::create( array_merge($time_record_data, ['note' => $note ?? null,]));
+                                    }
+                                }
                             }
                         }
                     }
+                    if (!in_array('cards', $syncList) && in_array('members', $syncList)){
+                        $this->error("Members cannot be synced without cards. Cards will be created and updated.");
+                    }
+                    if (count($syncList) == 0 || in_array('members', $syncList)){
+                        $this->info("Membres has been created");
+                    }
+                    $this->info("Cards has been created: $createdCards");
+                    $this->info("Cards has been updated: $updatedCards");
                 }
             }
         }
-        /*$this->info("Boards has been created: $createdBoards");
-        $this->info("Boards has been updated: $updatedBoards");
-        $this->info("Lists has been created: $createdLists");
-        $this->info("Lists has been updated: $updatedLists");
-        $this->info("Cards has been created: $createdCards");
-        $this->info("Cards has been updated: $updatedCards");*/
         if($cardsWithMultipleTags > 0) {
             foreach ($missedInfo as $item) {
                 $message .= "<br/>$item[card] - был сохранен только первый тег: $item[saved_tag], остальные были проигнорированы: ";
