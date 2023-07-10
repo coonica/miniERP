@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
         $this->call(BookerSeeder::class);
         $this->call(ProjectSeeder::class);
         $this->call(StatusSeeder::class);
+        $this->call(BoardSeeder::class);
+        $this->call(InvoiceSeeder::class);
         /*
         $sync = new ConnectTrello();
         $sync->handle();
