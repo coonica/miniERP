@@ -7,6 +7,7 @@ use App\Console\Commands\ConnectTrello;
 use App\Models\Booker;
 use App\Models\Invoice;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,8 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(BookerSeeder::class);
         $this->call(ProjectSeeder::class);
         $this->call(StatusSeeder::class);
-        $sync = new ConnectTrello();
-        $sync->handle();
+        Artisan::call('sync:trello', ['target' => 'all']);
         $this->call(InvoiceSeeder::class);
         $this->call(InvoiceTaskSeeder::class);
 

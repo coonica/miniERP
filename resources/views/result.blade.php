@@ -18,23 +18,23 @@
             </tr>
             </thead>
             <tbody>
-            @if (isset($result['invoices']))
-            @foreach($result['invoices'] as $invoice)
-                <tr>
-                    <td>{{$invoice['project']}}</td>
-                    <td>{{$invoice['invoice']}}</td>
-                    <td>{{$invoice['status']}}</td>
-                    <td>{{$invoice['budget']}}</td>
-                    @foreach($invoice['members'] as $member)
-                        <td>{{$member['est']}}</td>
-                        <td>{{$member['spent']}}</td>
-                        <td>{{$member['total']}}</td>
-                    @endforeach
-                    <td>{{$invoice['expenses']}}</td>
-                    <td>{{$invoice['profit']}}</td>
-                </tr>
-            @endforeach
-            @endif
+            @isset($result['invoices'])
+                @foreach($result['invoices'] as $invoice)
+                    <tr>
+                        <td>{{$invoice['project']}}</td>
+                        <td>{{$invoice['invoice']}}</td>
+                        <td>{{$invoice['status']}}</td>
+                        <td>{{$invoice['budget']}}</td>
+                        @foreach($invoice['members'] as $member)
+                            <td>{{$member['est']}}</td>
+                            <td>{{$member['spent']}}</td>
+                            <td>{{$member['total']}}</td>
+                        @endforeach
+                        <td>{{$invoice['expenses']}}</td>
+                        <td>{{$invoice['profit']}}</td>
+                    </tr>
+                @endforeach
+            @endisset
             </tbody>
         </table>
     </div>
