@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Admin\Http\Sections;
+namespace App\Http\Sections;
 
 use AdminColumn;
 use AdminColumnFilter;
