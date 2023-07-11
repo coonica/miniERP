@@ -74,6 +74,7 @@ class Invoices extends Section implements Initializable
                 ->setOrderable(function ($query, $direction) {
                     $query->orderBy('created_at', $direction);
                 })
+                ->setWidth('260px')
             ,
             AdminColumn::text('created_at', 'Created / updated', 'updated_at')
                 ->setWidth('160px')
