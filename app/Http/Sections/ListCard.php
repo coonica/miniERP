@@ -7,6 +7,7 @@ use AdminColumn;
 use AdminForm;
 use AdminFormElement;
 use AdminColumnFilter;
+use App\Models\ListCard as ModelsListCard;
 use SleepingOwl\Admin\Contracts\Display\DisplayInterface;
 use SleepingOwl\Admin\Contracts\Form\FormInterface;
 use SleepingOwl\Admin\Section;
@@ -110,6 +111,9 @@ class ListCard extends Section implements Initializable
                 AdminFormElement::text('name', 'Name')
                     ->required()
                 ,
+                AdminFormElement::select('idList', 'Список',\App\Models\BoardList::class)
+                ->setDisplay('name')
+                ->required(),
                 AdminFormElement::html('<hr>'),
                 AdminFormElement::datetime('created_at')
                     ->setVisible(true)
