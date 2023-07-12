@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Models\CardMember;
+use App\Models\Menu;
 use App\Models\Project;
 
 class SummaryTable
 {
+
     public function getInvoices() {
+
         $result = [];
         $projects = Project::all();
         foreach ($projects as $project) {
