@@ -71,8 +71,8 @@ class ListCards extends Section implements Initializable
                 ->setOrderable(function($query, $direction) {
                     $query->orderBy('name', $direction);
                 }),
-            AdminColumn::text('boardList.name', 'Список')->setWidth('90px')->setSearchable(false),
-        ];
+                AdminColumn::text('boardList.name', 'Список')->setSearchable(false)->setWidth('90px'),
+            ];
 
         $display = AdminDisplay::datatables()
             ->setName('firstdatatables')
