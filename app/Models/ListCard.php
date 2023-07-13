@@ -36,6 +36,7 @@ class ListCard extends Model
             $card->idCard = $trelloCard['id'];
             $card->pos = $trelloCard['pos'];
             $card->urlSource = $trelloCard['url'];
+            unset($card->idBoard);
         });
     }
 }

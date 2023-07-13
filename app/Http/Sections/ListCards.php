@@ -115,23 +115,17 @@ class ListCards extends Section implements Initializable
                 AdminFormElement::text('idCard', 'ID')->setReadonly(true),
             ], 'col-xs-12 col-sm-6 col-md-4 col-lg-4')
             ->addColumn([
-                AdminFormElement::select('idList', 'Список')->setModelForOptions(BoardList::class, 'name'),
+                AdminFormElement::select('idBoard', 'Доска')->setModelForOptions(Board::class, 'name'),
             ], 'col-xs-12 col-sm-12 col-md-12 col-lg-12')
-            //
-            // Dependent select - error on inserting in db
-            //
-            // ->addColumn([
-            //     AdminFormElement::select('idBoard', 'Доска')->setModelForOptions(Board::class, 'name'),
-            // ], 'col-xs-12 col-sm-12 col-md-12 col-lg-12')
-            // ->addColumn([
-            //     AdminFormElement::dependentselect('idList', 'Список')
-            //     ->setModelForOptions(BoardList::class, 'name')
-            //     ->setDataDepends(['idBoard'])
-            //     ->setLoadOptionsQueryPreparer(function($item, $query) {
-            //         return $query->where('idBoard', $item->getDependValue('idBoard'));
-            //     })
-            //     ->required(),
-            // ], 'col-xs-12 col-sm-12 col-md-12 col-lg-12')
+            ->addColumn([
+                AdminFormElement::dependentselect('idList', 'Список')
+                ->setModelForOptions(BoardList::class, 'name')
+                ->setDataDepends(['idBoard'])
+                ->setLoadOptionsQueryPreparer(function($item, $query) {
+                    return $query->where('idBoard', $item->getDependValue('idBoard'));
+                })
+                ->required(),
+            ], 'col-xs-12 col-sm-12 col-md-12 col-lg-12')
         ]);
 
         $form->getButtons()->setButtons([
