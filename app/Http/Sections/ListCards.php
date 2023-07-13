@@ -71,8 +71,7 @@ class ListCards extends Section implements Initializable
                 ->setOrderable(function($query, $direction) {
                     $query->orderBy('name', $direction);
                 }),
-            // Error when search with column Список
-            // AdminColumn::text('boardList.name', 'Список')->setWidth('90px'),
+            AdminColumn::text('boardList.name', 'Список')->setWidth('90px')->setSearchable(false),
         ];
 
         $display = AdminDisplay::datatables()
