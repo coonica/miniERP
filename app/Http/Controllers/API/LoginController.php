@@ -22,8 +22,8 @@ class LoginController extends Controller
         if (!Auth::attempt($login)){
             return response(['message' => 'Неверные логин и пароль']);
         }
-        $user = User::find(1);
-        $token = $user->createToken('authToken')->accessToken;
+
+        $token = Auth::user()->createToken('authToken')->accessToken;
         return response([
             'user' => Auth::user(),
             'access_token' => $token
