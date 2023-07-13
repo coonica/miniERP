@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ListCard;
 use Illuminate\Support\Facades\Http;
 
 class TrelloApi
@@ -10,7 +11,7 @@ class TrelloApi
     private $apiKey = '0b5cfd9c65673ebefc6702a753ab9b8f';
     private $token;
 
-    public function __construct($token)
+    public function __construct($token = 'ATTA037207c2cb1f78ad47fac31c3b379c7f6ae893fc3aaa685a44803a7680f32fbbE61C6A51')
     {
         $this->token = $token;
     }
@@ -51,4 +52,15 @@ class TrelloApi
     public function getMembersOfCard($id) {
         return Http::get($this->baseUrl . "/cards/$id/members?key=$this->apiKey&token=$this->token")->json();
     }
+
+        /**
+     * https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-post
+     */
+    public function addCard(ListCard $card) {
+        return Http::post($this->baseUrl . "/cards?key=$this->apiKey&token=$this->token", [
+            'name' => $card->name,
+            'idList' => '5bbb6f21fab0827f387951da',
+        ])->json();
+    }
+
 }
