@@ -9,7 +9,7 @@ use App\Models\Booker;
 use App\Models\InvoiceTask;
 use App\Models\ListCard;
 use App\Models\Member;
-use App\Models\MemberCard;
+use App\Models\CardMember;
 use App\Models\MemberCardTime;
 use App\Models\User;
 use App\Services\TrelloApi;
@@ -162,8 +162,8 @@ class ConnectTrello extends Command
                             continue;
                         }
                         $member = Member::find($comment['idMemberCreator']);
-                        // if user tracked time to the card but he was not its member - we'll create MemberCard record
-                        $memberCard = MemberCard::firstOrCreate(['list_card_idCard' => $card['id'], 'member_id' => $member->id]);
+                        // if user tracked time to the card but he was not its member - we'll create CardMember record
+                        $memberCard = CardMember::firstOrCreate(['list_card_idCard' => $card['id'], 'member_id' => $member->id]);
                         $memberCardId = $memberCard->id;
                         //adding estimate hour into pivot table
                         if (Str::startsWith($text, 'plus! 0/')) {
