@@ -17,6 +17,7 @@ use Faker\Generator;
 use Illuminate\Console\Command;
 use Illuminate\Container\Container;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Command\Command as CommandAlias;
@@ -58,12 +59,24 @@ class ConnectTrello extends Command
         // going through boards of existing bookers
         $bookers = Booker::all();
         $missedInfo = [];
+
+        if (!$syncAll && !$syncBoards && !$syncCards && !$syncMembers) {
+            echo '< Please add options to sync:trello artisan command >' . PHP_EOL;
+            echo "\n";
+            echo '--a|all : Command for sync Boards, Cards and members' . PHP_EOL;
+            echo '--b|boards : Command for sync Boards' . PHP_EOL;
+            echo '--c|cards : Command for sync Cards' . PHP_EOL;
+            echo '--m|members : Command for sync Members' . PHP_EOL;
+            echo "\n";
+            return CommandAlias::INVALID;
+        }
+
         foreach ($bookers as $booker) {
             $api = new TrelloApi($booker->trello_token);
             $boards = $api->getBoardsByMember($booker->user->name);
-            $createdBoards = $updatedBoards = $createdLists = $updatedLists = $createdCards = $updatedCards = $createdMember = $updatedMember = $cardsWithMultipleTags = 0;
+            $createdBoards = $updatedBoards = $createdLists = $updatedLists = $createdCards = $updatedCards = $cardsWithMultipleTags = 0;
             $message = 'При синхронизации с Trello были выделены карточки с несколькими тегами: ';
-            if($syncBoards){
+            if ($syncBoards) {
                 $this->info('Start sync boards');
             };
             foreach ($boards as $board) {
@@ -111,14 +124,14 @@ class ConnectTrello extends Command
                 // sync lists cards
                 $cards = $api->getCardsByBoard($board['id']);
 //                echo count($cards);
-                if($syncCards) {
+                if ($syncCards) {
                     $this->info('Start sync cards');
                 }
-                if(($syncCards && $syncMembers) || $syncAll){
+                if (($syncCards && $syncMembers) || $syncAll) {
                     $this->info('Start sync members');
                 }
                 foreach ($cards as $card) {
-                    if($syncCards || $syncAll) {
+                    if ($syncCards || $syncAll) {
                         $syncCardsFlag = true;
                         //creating or adding card
                         $existCard = ListCard::find($card['id']);
@@ -150,23 +163,28 @@ class ConnectTrello extends Command
                             'urlSource' => $card['shortUrl'], //or $card['url']
                         ];
 
-                        if (InvoiceTask::where('tag', $tag)->first()) {
-                            $data['invoice_task_tag'] = $tag;
-                        }
-                        if (!$existCard) {
-                            ListCard::create($data);
-                            $createdCards++;
+                        if(BoardList::count() !== 0) {
+                            if (InvoiceTask::where('tag', $tag)->first()) {
+                                $data['invoice_task_tag'] = $tag;
+                            }
+                            if (!$existCard) {
+                                ListCard::create($data);
+                                $createdCards++;
+                            } else {
+                                $existCard->update($data);
+                                $updatedCards++;
+                            }
                         } else {
-                            $existCard->update($data);
-                            $updatedCards++;
+                            echo 'HELLO' . PHP_EOL;
+                            continue;
                         }
                     }
 
                     //check members for card
-                    if(!$syncAll && !$syncCardsFlag){
+                    if (!$syncAll && !$syncCardsFlag) {
                         $this->info('Start sync members');
                     }
-                    if($syncMembers || $syncAll) {
+                    if ($syncMembers || $syncAll) {
                         $syncMembersFlag = true;
                         $members = $api->getMembersOfCard($card['id']);
                         foreach ($members as $trello_member) {
@@ -228,10 +246,10 @@ class ConnectTrello extends Command
                         }
                     }
                 }
-                if($syncMembersFlag){
+                if ($syncMembersFlag) {
                     $this->info("Members synced successfully");
                 }
-                if($syncCardsFlag){
+                if ($syncCardsFlag) {
                     $this->info("Cards has been created: $createdCards");
                     $this->info("Cards has been updated: $updatedCards");
                 }
@@ -243,11 +261,11 @@ class ConnectTrello extends Command
         $this->info("Lists has been updated: $updatedLists");
         $this->info("Cards has been created: $createdCards");
         $this->info("Cards has been updated: $updatedCards");*/
-        if($cardsWithMultipleTags > 0) {
+        if ($cardsWithMultipleTags > 0) {
             foreach ($missedInfo as $item) {
                 $message .= "<br/>$item[card] - был сохранен только первый тег: $item[saved_tag], остальные были проигнорированы: ";
                 foreach ($item['missed_tags'] as $tag) {
-                    if(last($item['missed_tags']) !== $tag) {
+                    if (last($item['missed_tags']) !== $tag) {
                         $message .= "$tag, ";
                     } else {
                         $message .= "$tag";
@@ -277,7 +295,8 @@ class ConnectTrello extends Command
         return implode(' ', $arr);
     }
 
-    public function sendMessage($recipient, $message) {
+    public function sendMessage($recipient, $message)
+    {
         mail($recipient, 'Synchronize trello tags', $message);
     }
 }

@@ -16,7 +16,7 @@ class InvoiceSeeder extends Seeder
      */
     public function run()
     {
-        if (Invoice::all()->count() == 0) {
+        if (Invoice::count() == 0 && Board::count() !== 0) {
             Invoice::factory(5)->create();
         }
     }
