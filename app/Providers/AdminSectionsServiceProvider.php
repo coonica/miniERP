@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\ListCard;
 use SleepingOwl\Admin\Providers\AdminSectionsServiceProvider as ServiceProvider;
 
 class AdminSectionsServiceProvider extends ServiceProvider
@@ -12,6 +13,7 @@ class AdminSectionsServiceProvider extends ServiceProvider
      */
     protected $sections = [
         //\App\User::class => 'App\Http\Sections\Users',
+        \App\Models\ListCard::class => 'App\Http\Sections\ListCard',
         \App\Models\Member::class => 'App\Http\Sections\Members',
     ];
 

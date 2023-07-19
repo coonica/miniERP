@@ -32,6 +32,7 @@ return [
         'title' => 'Information',
         'icon'  => 'fas fa-info-circle',
         'url'   => route('admin.information'),
+        'priority' => 1000
     ],
 
     // Examples
