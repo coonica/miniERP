@@ -9,7 +9,7 @@ use App\Models\Booker;
 use App\Models\InvoiceTask;
 use App\Models\ListCard;
 use App\Models\Member;
-use App\Models\MemberCard;
+use App\Models\CardMember;
 use App\Models\MemberCardTime;
 use App\Models\User;
 use App\Services\TrelloApi;
@@ -199,10 +199,10 @@ class ConnectTrello extends Command
                                     continue;
                                 }
                                 $member = Member::find($comment['idMemberCreator']);
-                                // if user tracked time to the card but he was not its member - we'll create MemberCard record
+                                // if user tracked time to the card but he was not its member - we'll create CardMember record
                                 if (!$member) {
-                                    $memberCard = MemberCard::firstOrCreate(['list_card_idCard' => $card['id'], 'member_id' => $member->id]);
-                                    $memberCardId = $memberCard->id;
+                                    $cardMember = CardMember::firstOrCreate(['list_card_idCard' => $card['id'], 'member_id' => $member->id]);
+                                    $cardMemberId = $cardMember->id;
                                     //adding estimate hour into pivot table
                                     if (Str::startsWith($text, 'plus! 0/')) {
                                         $time = $this->getTimeFromComment($comment['data']['text']);
@@ -215,7 +215,7 @@ class ConnectTrello extends Command
                                         $time = $this->getTimeFromComment($text);
                                         $note = $this->getNoteFromComment($text);
                                         $time_record_data = [
-                                            'members_cards_id' => $memberCardId,
+                                            'members_cards_id' => $cardMemberId,
                                             'date' => Carbon::parse($comment['date'])->format('Y-m-d H:i:s'),
                                             'spent_time' => (double)$time[0],
                                         ];
@@ -281,9 +281,9 @@ class ConnectTrello extends Command
                             $member = Member::find($comment['idMemberCreator']) ?? null;
                             if ($member->id !== null) {
                                 try {
-                                    // if user tracked time to the card but he was not its member - we'll create MemberCard record
-                                    $memberCard = MemberCard::firstOrCreate(['list_card_idCard' => $card['idCard'], 'member_id' => $member->id]);
-                                    $memberCardId = $memberCard->id;
+                                    // if user tracked time to the card but he was not its member - we'll create CardMember record
+                                    $cardMember = CardMember::firstOrCreate(['list_card_idCard' => $card['idCard'], 'member_id' => $member->id]);
+                                    $cardMemberId = $cardMember->id;
                                     //adding estimate hour into pivot table
                                     if (Str::startsWith($text, 'plus! 0/')) {
                                         $time = $this->getTimeFromComment($comment['data']['text']);
@@ -296,7 +296,7 @@ class ConnectTrello extends Command
                                         $time = $this->getTimeFromComment($text);
                                         $note = $this->getNoteFromComment($text);
                                         $time_record_data = [
-                                            'members_cards_id' => $memberCardId,
+                                            'members_cards_id' => $cardMemberId,
                                             'date' => Carbon::parse($comment['date'])->format('Y-m-d H:i:s'),
                                             'spent_time' => (double)$time[0],
                                         ];
