@@ -25,7 +25,8 @@ class AdminSectionsServiceProvider extends ServiceProvider
         // alphabet order
         //priority by use
         //\App\User::class => 'App\Http\Sections\Users',
-        \App\Models\Invoice::class => 'App\Http\Sections\Invoices'
+        \App\Models\Invoice::class => 'App\Http\Sections\Invoices',
+        \App\Models\Member::class => 'App\Http\Sections\Members'
     ];
 
     /**
