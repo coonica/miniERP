@@ -2,6 +2,7 @@
 
 namespace App\Admin\Providers;
 
+use App\Models\ListCard;
 use Illuminate\Routing\Router;
 use SleepingOwl\Admin\Contracts\Navigation\NavigationInterface;
 use SleepingOwl\Admin\Contracts\Template\MetaInterface;
@@ -25,6 +26,7 @@ class AdminSectionsServiceProvider extends ServiceProvider
         // alphabet order
         //priority by use
         //\App\User::class => 'App\Http\Sections\Users',
+        \App\Models\ListCard::class => 'App\Http\Sections\ListCards',
         \App\Models\Invoice::class => 'App\Http\Sections\Invoices',
         \App\Models\Member::class => 'App\Http\Sections\Members'
     ];
