@@ -112,7 +112,7 @@ class ListCards extends Section implements Initializable
                 AdminFormElement::select('idBoard', 'Board')
                     ->setModelForOptions(Board::class)
                     ->setValueSkipped(true)
-                    ->setDisplay('idBoard')
+                    ->setDisplay('name')
                     ->required()
                 ,
                 AdminFormElement::dependentselect('idList', 'List')
