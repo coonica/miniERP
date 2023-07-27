@@ -30,11 +30,14 @@ class ListCard extends Model
     protected static function booted()
     {
         static::creating(function ($card) {
-//            $api = new TrelloApi();
-//            $trello_card = $api->addCard($card);
-//            $card->idCard = $trello_card['id'];
-//            $card->pos = $trello_card['pos'];
-//            $card->urlSource = $trello_card['url'];
+            if (!isset($card->idCard)){
+                // calling from SOA - we need card id from trello
+                $api = new TrelloApi();
+                $trello_card = $api->addCard($card);
+                $card->idCard = $trello_card['id'];
+                $card->pos = $trello_card['pos'];
+                $card->urlSource = $trello_card['url'];
+            }
         });
     }
 }
