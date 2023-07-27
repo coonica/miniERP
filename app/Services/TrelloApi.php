@@ -40,6 +40,13 @@ class TrelloApi
     }
 
     /**
+     * https://developer.atlassian.com/cloud/trello/rest/api-group-lists/#api-lists-id-cards-get
+     */
+    public function getCardsByList($id) {
+        return Http::get($this->baseUrl . "/lists/$id/cards?key=$this->apiKey&token=$this->token")->json();
+    }
+
+    /**
      * https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-actions-get
      */
     public function getCommentsByCard($id) {
@@ -62,5 +69,12 @@ class TrelloApi
             'idList' => '5bbb6f21fab0827f387951da',
             'name' => $card->name
         ])->json();
+    }
+
+    /**
+     * https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-delete
+     */
+    public function deleteCard($id) {
+        return Http::delete($this->baseUrl . "/cards/$id?key=$this->apiKey&token=$this->token")->json();
     }
 }
