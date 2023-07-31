@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ClientSeeder::class);
         $this->call(ProjectSeeder::class);
         $this->call(StatusSeeder::class);
-        Artisan::call('sync:trello', ['target' => 'all']);
+        Artisan::call('sync:trello');
         $this->call(InvoiceSeeder::class);
         $this->call(InvoiceTaskSeeder::class);
     }
