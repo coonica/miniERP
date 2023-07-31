@@ -13,6 +13,7 @@ use App\Models\MemberCard;
 use App\Models\MemberCardTime;
 use App\Models\User;
 use App\Services\TrelloApi;
+use App\Services\TrelloSync;
 use Faker\Generator;
 use Illuminate\Console\Command;
 use Illuminate\Container\Container;
@@ -48,7 +49,7 @@ class ConnectTrello extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(TrelloSync $trelloSync)
     {
         //обработка аргумента
         $target = $this->argument('target') ?? 'all';
@@ -168,65 +169,73 @@ class ConnectTrello extends Command
                         if (in_array($target, $membersSyncCommands, false)) {
                             $members = $api->getMembersOfCard($card['id']);
                             foreach ($members as $trello_member) {
-                                $member = Member::find($trello_member['id']);
-                                if (!$member) {
-                                    //adding user with faker's help
-                                    $user = User::create([
-                                        'name' => $trello_member['username'],
-                                        'email' => $faker->unique()->safeEmail(),
-                                        'password' => $faker->password(),
-                                        'isActive' => 0
-                                    ]);
-                                    $member = Member::create([
-                                        'id' => $trello_member['id'],
-                                        'user_name' => $trello_member['username'],
-                                        'user_id' => $user->id
-                                    ]);
-                                }
+                                $member = $trelloSync->saveMember($trello_member);
                                 // add member to card if needed
                                 if (!$member->listCards->find($card['id'])) {
                                     $member->listCards()->attach($card['id']);
                                     $member = $member->fresh();
                                 }
+//                                $member = Member::find($trello_member['id']);
+//                                if (!$member) {
+//                                    //adding user with faker's help
+//                                    $user = User::create([
+//                                        'name' => $trello_member['username'],
+//                                        'email' => $faker->unique()->safeEmail(),
+//                                        'password' => $faker->password(),
+//                                        'isActive' => 0
+//                                    ]);
+//                                    $member = Member::create([
+//                                        'id' => $trello_member['id'],
+//                                        'user_name' => $trello_member['username'],
+//                                        'user_id' => $user->id
+//                                    ]);
+//                                }
+//                                // add member to card if needed
+//                                if (!$member->listCards->find($card['id'])) {
+//                                    $member->listCards()->attach($card['id']);
+//                                    $member = $member->fresh();
+//                                }
                             }
 
                             // sync member first estimate and member spend time records from the card
-                            $comments = $api->getCommentsByCard($card['id']);
-                            foreach ($comments as $comment) {
-                                $text = $comment['data']['text'];
-                                if (Str::startsWith($text, 'plus! ') === false) {
-                                    // not comment with time - skip it
-                                    continue;
-                                }
-                                $member = Member::find($comment['idMemberCreator']);
-                                // if user tracked time to the card but he was not its member - we'll create MemberCard record
-                                if (!$member) {
-                                    $memberCard = MemberCard::firstOrCreate(['list_card_idCard' => $card['id'], 'member_id' => $member->id]);
-                                    $memberCardId = $memberCard->id;
-                                    //adding estimate hour into pivot table
-                                    if (Str::startsWith($text, 'plus! 0/')) {
-                                        $time = $this->getTimeFromComment($comment['data']['text']);
-                                        $estHour = $time[1];
-                                        $member->listCards()->updateExistingPivot($card['id'], ['est_hour' => $estHour]);
-                                        continue;
-                                    }
-                                    // adding new spent time records
-                                    if (Str::startsWith($text, 'plus! ')) {
-                                        $time = $this->getTimeFromComment($text);
-                                        $note = $this->getNoteFromComment($text);
-                                        $time_record_data = [
-                                            'members_cards_id' => $memberCardId,
-                                            'date' => Carbon::parse($comment['date'])->format('Y-m-d H:i:s'),
-                                            'spent_time' => (double)$time[0],
-                                        ];
-                                        $time_record = MemberCardTime::where($time_record_data)->first();
-                                        if ($time[0] > 0 && $time_record === null) {
-                                            MemberCardTime::create(array_merge($time_record_data, ['note' => $note ?? null,]));
-                                        }
-                                    }
+                            $trelloSync->saveMemberCardTime($card['id']);
 
-                                }
-                            }
+//                            $comments = $api->getCommentsByCard($card['id']);
+//                            foreach ($comments as $comment) {
+//                                $text = $comment['data']['text'];
+//                                if (Str::startsWith($text, 'plus! ') === false) {
+//                                    // not comment with time - skip it
+//                                    continue;
+//                                }
+//                                $member = Member::find($comment['idMemberCreator']);
+//                                // if user tracked time to the card but he was not its member - we'll create MemberCard record
+//                                if (!$member) {
+//                                    $memberCard = MemberCard::firstOrCreate(['list_card_idCard' => $card['id'], 'member_id' => $member->id]);
+//                                    $memberCardId = $memberCard->id;
+//                                    //adding estimate hour into pivot table
+//                                    if (Str::startsWith($text, 'plus! 0/')) {
+//                                        $time = $this->getTimeFromComment($comment['data']['text']);
+//                                        $estHour = $time[1];
+//                                        $member->listCards()->updateExistingPivot($card['id'], ['est_hour' => $estHour]);
+//                                        continue;
+//                                    }
+//                                    // adding new spent time records
+//                                    if (Str::startsWith($text, 'plus! ')) {
+//                                        $time = $this->getTimeFromComment($text);
+//                                        $note = $this->getNoteFromComment($text);
+//                                        $time_record_data = [
+//                                            'members_cards_id' => $memberCardId,
+//                                            'date' => Carbon::parse($comment['date'])->format('Y-m-d H:i:s'),
+//                                            'spent_time' => (double)$time[0],
+//                                        ];
+//                                        $time_record = MemberCardTime::where($time_record_data)->first();
+//                                        if ($time[0] > 0 && $time_record === null) {
+//                                            MemberCardTime::create(array_merge($time_record_data, ['note' => $note ?? null,]));
+//                                        }
+//                                    }
+//
+//                                }
+//                            }
                         }
                     }
 
@@ -247,21 +256,22 @@ class ConnectTrello extends Command
                     foreach ($cards as $card) {
                         $members = $api->getMembersOfCard($card['idCard']);
                         foreach ($members as $trello_member) {
-                            $member = Member::find($trello_member['id']);
-                            if (!$member) {
-                                //adding user with faker's help
-                                $user = User::create([
-                                    'name' => $trello_member['username'],
-                                    'email' => $faker->unique()->safeEmail(),
-                                    'password' => $faker->password(),
-                                    'isActive' => 0
-                                ]);
-                                $member = Member::create([
-                                    'id' => $trello_member['id'],
-                                    'user_name' => $trello_member['username'],
-                                    'user_id' => $user->id
-                                ]);
-                            }
+                            $member = $trelloSync->saveMember($trello_member);
+//                            $member = Member::find($trello_member['id']);
+//                            if (!$member) {
+//                                //adding user with faker's help
+//                                $user = User::create([
+//                                    'name' => $trello_member['username'],
+//                                    'email' => $faker->unique()->safeEmail(),
+//                                    'password' => $faker->password(),
+//                                    'isActive' => 0
+//                                ]);
+//                                $member = Member::create([
+//                                    'id' => $trello_member['id'],
+//                                    'user_name' => $trello_member['username'],
+//                                    'user_id' => $user->id
+//                                ]);
+//                            }
                             // add member to card if needed
                             if (!$member->listCards->find($card['idCard'])) {
                                 $member->listCards()->attach($card['idCard']);
